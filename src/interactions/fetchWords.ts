@@ -1,8 +1,11 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, EmbedBuilder } from "discord.js"
 import PronounsPageApi from "../api/PronounsPage"
+import localeHelper from "../localeHelper"
 import embedclr from "../utils/embedclr"
+import fetchPerson from "../utils/fetchPerson"
 import getLanguage from "../utils/getLanguage"
 import getUrl from "../utils/getUrl"
+import LanguageUtil from "../utils/languageUtil"
 
 const getOpinion = async (opinion: string, opinions?: object)=>{
     switch (opinion){
@@ -15,7 +18,13 @@ const getOpinion = async (opinion: string, opinions?: object)=>{
     }
 }
 
+const transHelper = new localeHelper()
+const translations = transHelper.LoadForCommand("fetch")
+const langUtil = new LanguageUtil(translations)
+
 export default async (int: ButtonInteraction) => {
+    langUtil.update(int.locale)
+
     // parse the custom id
     let splitted = int.customId.split("_")
     if (splitted.length < 3) return console.error(`[WORDS] Received ${splitted.length} arguments but needed 3`) 
@@ -24,132 +33,102 @@ export default async (int: ButtonInteraction) => {
     let ppuserId = splitted[1]
     let locale = splitted[2]
     
-    var PPApi = new PronounsPageApi(locale)
-    let ppuser = await PPApi.getUserById(ppuserId)
+    await int.deferReply({
+        ephemeral: true
+    }) // defer to prevent timeout
+    
+    let user = await fetchPerson(ppuserId, locale)
 
-    if (!ppuser || !ppuser.id) return await int.reply({
+    if (!user) return await int.editReply({
         embeds: [
             new EmbedBuilder()
-            .setTitle("Error")
-            .setDescription("Language might be in testing. Could not fetch details!")
+            .setTitle(langUtil.getGeneric("error"))
+            .setDescription(langUtil.get("noUser").replace("\\n", "\n"))
             .setColor(embedclr)
             .setThumbnail("attachment://cross.png")
-        ], files: ["./static/cross.png"], ephemeral: true
+        ], files: ["./static/cross.png"]
     })
-    if (!(locale in ppuser.profiles)) return await int.reply({
+    // should never fire
+    if (!user.profile) return await int.editReply({
         embeds: [
             new EmbedBuilder()
-            .setTitle("Error")
-            .setDescription("User does not have specified page.")
+            .setTitle(langUtil.getGeneric("error"))
+            .setDescription(langUtil.get("noPage"))
             .setColor(embedclr)
             .setThumbnail("attachment://cross.png")
-        ], files: ["./static/cross.png"], ephemeral: true
+        ], files: ["./static/cross.png"]
     })
 
-    let profile = ppuser.profiles[locale]
     let embed = new EmbedBuilder()
         .setAuthor({
-            name: ppuser.username,
-            iconURL: ppuser.avatarSource,
-            url: `https://${getUrl(locale)}/@${ppuser.username}`
+            name: user.user.username,
+            iconURL: user.user.avatar,
+            url: `https://${getUrl(locale)}/@${user.user.username}`
         }).setColor(embedclr)
-        .setDescription(profile.description || "No description")
+        .setDescription(user.description || langUtil.get("noDesc"))
         .setFooter({
-            text: "Account ID: %id%; Locale: %locale%".replace("%id%", ppuserId).replace("%locale%", locale)
+            text: langUtil.get("footer").replace("%id%", ppuserId).replace("%locale%", locale)
         })
-        .setThumbnail(ppuser.avatarSource)
-    
-    for (let column of profile.words){
+        .setThumbnail(user.user.avatar)
+
+    for (let column of user.profile.words){
         let prettifyColumn = ""
+        let count = 0
         for (let word of column.values){
+            count++;
+            if (count > 25) {
+                prettifyColumn += langUtil.getGeneric("andMore").replace("%count%", column.values.slice(count).length.toString())
+                break;
+            }
             prettifyColumn += await getOpinion(word.opinion) + word.value + "\n"
         }
         if (!prettifyColumn) continue;
         embed.addFields({
             name: column.header || "\u200b", value: prettifyColumn, inline: true
         })
-    }
+    }    
 
     let actionRow = new ActionRowBuilder<ButtonBuilder>()
     let profileLocales = []
-    for (let pf in ppuser.profiles) profileLocales.push(pf)
+    for (let pf in user.user.profiles) profileLocales.push(pf)
+    
     let currentIndex = profileLocales.indexOf(locale)
-
-    // PAINFUL IF-ELSE-IF
-    // PLEASE REWRITE (or ill do it myself later if i dont forget)
-    // this thing hurts my eyes for sure
-    // atleast it does the job
-    if (currentIndex - 1 < 0) {
+    let after = profileLocales.length - currentIndex - 1 // length is +1
+    let before = profileLocales.length - after - 1 // - current
+    if (before > 2 && after > 2) {
+        // limit to only 2 before 2 after
+        before = 2;
+        after = 2;
+    }
+    if (before > 2 && after <= 2) before = 5 - after - 1 // number of btns - after - current button
+    if (before <= 2 && after > 2) after = 5 - before - 1 // number of btns - before - current
+    
+    for (let i = before; i > 0; i--){
         actionRow.addComponents(
             new ButtonBuilder()
-            .setCustomId(`P_${ppuserId}_${locale}`)
-            .setLabel("Pronouns")
-            .setStyle(ButtonStyle.Secondary)
-        )
-        if (profileLocales.length > 1){
-            let length = profileLocales.length-currentIndex < 5 ? profileLocales.length-currentIndex : 4
-            for (let i = 1; i<length + 1; i++) actionRow.addComponents(
-                new ButtonBuilder()
-                .setCustomId(`W_${ppuserId}_${profileLocales[currentIndex+i]}`)
-                .setLabel(await getLanguage(profileLocales[currentIndex + i], int.locale))
-                .setStyle(ButtonStyle.Primary)
-            )
-        }
-    } else if (currentIndex - 2 < 0) {
-        actionRow.addComponents(
-            new ButtonBuilder()
-            .setCustomId(`W_${ppuserId}_${profileLocales[currentIndex-1]}`)
-            .setLabel(await getLanguage(profileLocales[currentIndex - 1], int.locale))
+            .setCustomId(`W_${user.user.id}_${profileLocales[currentIndex - i]}`)
+            .setLabel(await getLanguage(profileLocales[currentIndex - i], int.locale))
             .setStyle(ButtonStyle.Primary)
         )
+    }
+    actionRow.addComponents(
+        new ButtonBuilder()
+        .setCustomId(`P_${user.user.id}_${profileLocales[currentIndex]}`)
+        .setLabel(langUtil.get("pronouns"))
+        .setStyle(ButtonStyle.Secondary)
+    )
+
+    for (let i = 1; i < after + 1; i++){
         actionRow.addComponents(
             new ButtonBuilder()
-            .setCustomId(`P_${ppuserId}_${locale}`)
-            .setLabel("Pronouns")
-            .setStyle(ButtonStyle.Secondary)
+            .setCustomId(`W_${user.user.id}_${profileLocales[currentIndex + i]}`)
+            .setLabel(await getLanguage(profileLocales[currentIndex + i], int.locale))
+            .setStyle(ButtonStyle.Primary)
         )
-        if (profileLocales.length > 2){
-            let length = profileLocales.length-currentIndex < 4 ? profileLocales.length-currentIndex : 3
-            for (let i = 1; i<length+1; i++) actionRow.addComponents(
-                new ButtonBuilder()
-                .setCustomId(`W_${ppuserId}_${profileLocales[currentIndex+i]}`)
-                .setLabel(await getLanguage(profileLocales[currentIndex + i], int.locale))
-                .setStyle(ButtonStyle.Primary)
-            )
-        }
-    } else {
-        // calculate how many buttons before
-        let length = profileLocales.length-currentIndex-1 < 3 ? profileLocales.length-currentIndex-1 : 2
-        length = Math.abs(2-length)
-        for (let i = 2 + length; i>0; i--){
-            actionRow.addComponents(
-                new ButtonBuilder()
-                .setCustomId(`W_${ppuserId}_${profileLocales[currentIndex-i]}`)
-                .setLabel(await getLanguage(profileLocales[currentIndex - i], int.locale))
-                .setStyle(ButtonStyle.Primary)
-            )
-        }
-        actionRow.addComponents(
-            new ButtonBuilder()
-            .setCustomId(`P_${ppuserId}_${locale}`)
-            .setLabel("Pronouns")
-            .setStyle(ButtonStyle.Secondary)
-        )
-        // recalculate how many after
-        length = Math.abs(2-length)
-        if (length > 0){
-            for (let i = 1; i<length + 1; i++) actionRow.addComponents(
-                new ButtonBuilder()
-                .setCustomId(`W_${ppuserId}_${profileLocales[currentIndex+i]}`)
-                .setLabel(await getLanguage(profileLocales[currentIndex + i], int.locale))
-                .setStyle(ButtonStyle.Primary)
-            )
-        }
     }
 
-    return await int.reply({
+    return await int.editReply({
         embeds: [embed],
-        ephemeral: true,
         components: [actionRow]
     })
 }

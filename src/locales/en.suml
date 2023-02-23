@@ -3,6 +3,7 @@ error: 'Error'
 success: 'Success'
 yes: 'Yes'
 no: 'No'
+andMore: 'and %count% more'
 languages:
     de: 'German'
     en: 'English'
@@ -41,6 +42,7 @@ commands:
         looking: 'Looking up user %username%...'
         noUser: 'No user found\nAre you sure you typed it correctly?'
         setAcc: 'Set your account to @%username%!'
+        invalidUser: 'The username you provided is invalid'
     whois:
         name: 'whois'
         description: 'Gets information about a user'
@@ -80,4 +82,14 @@ commands:
         untilName: 'until'
         untilDesc: 'How much until unban (1M 2d 3h 4m 5s)'
         fakeUser: 'User does not exist!'
-        
+    fetch:
+        noUser: 'Language might be in testing or user does not exist.\nCould not fetch details!'
+        noPage: 'User does not have specified page'
+        noDesc: 'No description'
+        footer: 'Account ID: %id%; Locale: %locale%'
+        names: 'Names'
+        pronouns: 'Pronouns'
+        flags: 'Flags'
+        timezone: 'Timezone'
+        circle: 'Circle'
+        words: 'Words'

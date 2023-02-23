@@ -47,6 +47,7 @@ export default class Translations {
                         yes: this.translations[t]["yes"],
                         no: this.translations[t]["no"],
                         languages: this.translations[t]["languages"],
+                        andMore: this.translations[t]["andMore"]
                     }
                     cmdTrans["generic"]["en-GB"] = cmdTrans["generic"]["en-US"]
                     continue
@@ -62,6 +63,7 @@ export default class Translations {
                     yes: this.translations[t]["yes"],
                     no: this.translations[t]["no"],
                     languages: this.translations[t]["languages"],
+                    andMore: this.translations[t]["andMore"]
                 }
             }
             return cmdTrans

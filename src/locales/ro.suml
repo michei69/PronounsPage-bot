@@ -3,6 +3,7 @@ error: 'Eroare'
 success: 'Succes'
 yes: 'Da'
 no: 'Nu'
+andMore: 'și încă %count%'
 languages:
     de: 'Germană'
     en: 'Engleză'
@@ -41,6 +42,7 @@ commands:
         looking: 'Verificăm %username%...'
         noUser: 'Niciun utilizator găsit\nSigur ai scris corect?'
         setAcc: 'Ți-am setat @%username% ca și contul tău!'
+        invalidUser: 'Numele de utilizator dat este invalid'
     whois:
         name: 'whois'
         description: 'Arată informații despre un utilizator'
@@ -57,7 +59,6 @@ commands:
         banned: 'Suspendat'
         team: 'Echipă?'
         profiles: 'Profile'
-    
     kick:
         name: 'kick'
         description: 'Dă afară un utilizator'
@@ -80,3 +81,14 @@ commands:
         banned: 'L-ai suspendat pe %tag% pentru %reason%'
         untilName: 'cat'
         untilDesc: 'Cat timp pana la scoaterea suspendarii (1M 2d 3h 4m 5s)'
+    fetch:
+        noUser: 'Limba se află în teste sau utilizatorul nu există.\nN-am putut lua informații!'
+        noPage: 'Utilizatorul n-are această pagină'
+        noDesc: 'Fără descriere'
+        footer: 'ID Cont: %id%; Limbă: %locale%'
+        names: 'Nume'
+        pronouns: 'Pronume'
+        flags: 'Steaguri'
+        timezone: 'Fus orar'
+        circle: 'Cerc'
+        words: 'Cuvinte'

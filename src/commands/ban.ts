@@ -2,9 +2,11 @@ import { ChatInputCommandInteraction, EmbedBuilder, PermissionFlagsBits, Permiss
 import LazyDatabase from "../database";
 import localeHelper from "../localeHelper";
 import embedclr from "../utils/embedclr";
+import LanguageUtil from "../utils/languageUtil";
 
 const transHelper = new localeHelper()
 const translations = transHelper.LoadForCommand("ban")
+const langUtil = new LanguageUtil(translations)
 
 const db = new LazyDatabase()
 
@@ -34,8 +36,8 @@ export default {
         if (!(int.member.permissions as PermissionsBitField).has(PermissionFlagsBits.BanMembers)) return await int.reply({
             embeds: [
                 new EmbedBuilder()
-                .setTitle(translations["generic"][int.locale]["error"] || translations["generic"]["en-US"]["error"])
-                .setDescription(translations["noPerms"][int.locale] || translations["noPerms"]["en-US"])
+                .setTitle(langUtil.getGeneric("error"))
+                .setDescription(langUtil.get("noPerms"))
                 .setColor(embedclr)
                 .setThumbnail("attachment://cross.png")
             ], files: ["./static/cross.png"], ephemeral: true
@@ -49,8 +51,8 @@ export default {
         if (!realuser.bannable) return await int.reply({
             embeds: [
                 new EmbedBuilder()
-                .setTitle(translations["generic"][int.locale]["error"] || translations["generic"]["en-US"]["error"])
-                .setDescription(translations["noSelfPerms"][int.locale] || translations["noSelfPerms"]["en-US"])
+                .setTitle(langUtil.getGeneric("error"))
+                .setDescription(langUtil.get("noSelfPerms"))
                 .setColor(embedclr)
                 .setThumbnail("attachment://cross.png")
             ], files: ["./static/cross.png"], ephemeral: true
@@ -78,8 +80,8 @@ export default {
             return await int.reply({
                 embeds: [
                     new EmbedBuilder()
-                    .setTitle(translations["generic"][int.locale]["error"] || translations["generic"]["en-US"]["error"])
-                    .setDescription(translations["fakeUser"][int.locale] || translations["fakeUser"]["en-US"])
+                    .setTitle(langUtil.getGeneric("error"))
+                    .setDescription(langUtil.get("fakeUser"))
                     .setColor(embedclr)
                     .setThumbnail("attachment://cross.png")
                 ], files: ["./static/cross.png"], ephemeral: true
@@ -114,8 +116,8 @@ export default {
         return await int.reply({
             embeds: [
                 new EmbedBuilder()
-                .setTitle(translations["generic"][int.locale]["success"] || translations["generic"]["en-US"]["success"])
-                .setDescription((translations["banned"][int.locale] || translations["banned"]["en-US"]).replace("%tag%", user.tag).replace("%reason%", reason))
+                .setTitle(langUtil.getGeneric("success"))
+                .setDescription(langUtil.get("banned").replace("%tag%", user.tag).replace("%reason%", reason))
                 .setColor(embedclr)
                 .setThumbnail("attachment://check.png")
             ], files: ["./static/check.png"], ephemeral: true

@@ -4,12 +4,15 @@ import LazyDatabase from "../database";
 import localeHelper from "../localeHelper";
 import embedclr from "../utils/embedclr";
 import getLanguage from "../utils/getLanguage";
+import getUrl from "../utils/getUrl";
+import LanguageUtil from "../utils/languageUtil";
 
 const PPApi = new PronounsPageApi()
 const db = new LazyDatabase()
 
 const transHelper = new localeHelper()
 const translations = transHelper.LoadForCommand("whois")
+const langUtil = new LanguageUtil(translations)
 
 export default {
     data: new SlashCommandBuilder()
@@ -25,12 +28,14 @@ export default {
             .setRequired(true)
         ),
     async execute(int: ChatInputCommandInteraction) {
+        langUtil.update(int.locale)
+
         let user = int.options.getUser("user")
         if (user.bot){
             return await int.reply({embeds: [
                 new EmbedBuilder()
-                .setTitle(translations["isBot"][int.locale] || translations["isBot"]["en-US"])
-                .setDescription((translations["isBotDesc"][int.locale] || translations["isBotDesc"]["en-US"]).replace("\\n", "\n"))
+                .setTitle(langUtil.get("isBot"))
+                .setDescription(langUtil.get("isBotDesc").replace("\\n", "\n"))
                 .setColor(embedclr)
                 .setThumbnail("attachment://cross.png")
             ], files: ["./static/cross.png"], ephemeral: true})
@@ -44,52 +49,53 @@ export default {
         let embed = new EmbedBuilder()
             .setThumbnail(user.avatarURL())
             .addFields([
-                {name: translations["joined"][int.locale] || translations["joined"]["en-US"], value:`<t:${userJoined}>`, inline: true},
-                {name: translations["created"][int.locale] || translations["created"]["en-US"], value:`<t:${userCreated}>`, inline: true}
+                {name: langUtil.get("joined"), value:`<t:${userJoined}>`, inline: true},
+                {name: langUtil.get("created"), value:`<t:${userCreated}>`, inline: true}
             ])
             .setAuthor({
                 name: user.tag,
                 iconURL: user.avatarURL()
             })
             .setFooter({
-                text: (translations["userId"][int.locale] || translations["userId"]["en-US"]).replace("%id%", user.id)
+                text: langUtil.get("userId").replace("%id%", user.id)
             })
             .setColor(embedclr)
         if (!results || results.length < 1) {
             return await int.reply({
-                embeds: [embed.setDescription(translations["noAcc"][int.locale] || translations["noAcc"]["en-US"])],
+                embeds: [embed.setDescription(langUtil.get("noAcc"))],
                 ephemeral: true
             })
         }
         embed.setTitle(results.username)
         let ppuser = await PPApi.getUser(results.username)
         if (!ppuser || !ppuser.id) return await int.reply({
-            embeds: [embed.setDescription(`${results ? (translations["invalid"][int.locale] || translations["invalid"]["en-US"]) : (translations["noAcc"][int.locale] || translations["noAcc"]["en-US"])}`)],
+            embeds: [embed.setDescription(`${results ? langUtil.get("invalid") : langUtil.get("noAcc")}`)],
             ephemeral: true
         })
         
         embed.setFooter({
             text: `${
-                (translations["userId"][int.locale] || translations["userId"]["en-US"]).replace("%id%", user.id)
-            }; ${(translations["accId"][int.locale] || translations["accId"]["en-US"]).replace("%id%", ppuser.id)}`
+                langUtil.get("userId").replace("%id%", user.id)
+            }; ${langUtil.get("accId").replace("%id%", ppuser.id)}`
         })
 
+        // should never run, non-admins dont have access to banned accounts
         if (ppuser.bannedBy) embed.addFields({
-            name: translations["banned"][int.locale] || translations["banned"]["en-US"], value: ppuser.bannedReason
+            name: langUtil.get("banned"), value: ppuser.bannedReason
         })
 
         let profiles = []
         for (let profile in ppuser.profiles) {
-            profiles.push(`[${await getLanguage(profile, int.locale)}](${profile == "pl" ? "zaimki.pl" : profile + ".pronouns.page"}/@${ppuser.username})`)
+            profiles.push(`[${await getLanguage(profile, int.locale)}](https://${getUrl(profile)}/@${ppuser.username})`)
         }
 
-        let yesWord = translations["generic"][int.locale]["yes"] || translations["generic"]["en-US"]["yes"]
-        let noWord = translations["generic"][int.locale]["no"] || translations["generic"]["en-US"]["no"]
+        let yesWord = langUtil.getGeneric("yes")
+        let noWord = langUtil.getGeneric("no")
 
         embed.addFields([{
-            name: translations["team"][int.locale] || translations["team"]["en-US"], value: ppuser.team == 1 ? yesWord : noWord, inline: true
+            name: langUtil.get("team"), value: ppuser.team == 1 ? yesWord : noWord, inline: true
         }, {
-            name: translations["profiles"][int.locale] || translations["profiles"]["en-US"], value: profiles.join("\n"), inline: false
+            name: langUtil.get("profiles"), value: profiles.join("\n"), inline: false
         }])
 
         let actionRow = new ActionRowBuilder<ButtonBuilder>()

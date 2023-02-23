@@ -69,11 +69,11 @@ interface InclusiveEntry {
     say: string,
     because: string,
     locale: string,
-    approved: number,
+    approved: number, // numbers instead of bools cause directly from db
     base_id: string | null,
     author_id: string,
     categories: string,
-    links: any, // currently string but looks like a bug imo
+    links: string, // unparsed json, should be array
     deleted: number,
     clarification: string | null,
     author: string
@@ -89,7 +89,7 @@ interface Term {
     base_id: string | null,
     author_id: string,
     deleted: number,
-    flags: string, //again, weird decision? looks like json inside a string for me
+    flags: string, // unparsed json from db, parsed should be an array
     category: string,
     images: string,
     key: string,
@@ -110,7 +110,7 @@ interface Name {
 }
 interface LinkData {
     favicon: string,
-    relMe: Array<any>, // no idea
+    relMe: Array<any>, // parsed rel me, should set to any/null like nodeinfo
     nodeInfo: any | null
 }
 interface WordColumn {
@@ -131,7 +131,7 @@ interface CustomFlag {
     alt: string | null,
     link: string | null
 }
-interface Profile {
+export interface Profile {
     opinions: {
         [key: string]: Opinion
     },
@@ -149,12 +149,12 @@ interface Profile {
     flags: Array<string>,
     customFlags: Array<CustomFlag>,
     words: Array<WordColumn>,
-    birthday: any | null, // no idea what kind birthday is - useless for bot anyway
+    birthday: any | undefined | null, // no idea what kind birthday is - useless for bot anyway
     timezone: {
         tz: string,
         area: boolean,
         loc: boolean
-    },
+    } | null,
     teamName: string | null,
     footerName: string | null,
     footerAreas: Array<string>,
@@ -166,15 +166,17 @@ interface Profile {
     card: string | null,
     cardDark: string | null,
     circle: Array<Relationship>,
-    sensitive: Array<any> //???
+    sensitive: Array<any> // still have no idea what sensitive is
 }
-interface User {
+export interface User {
     id: string,
     username: string,
     avatarSource: string,
+    // useless for bot / admin only
     bannedReason: string | null,
-    bannedTerms: Array<string>,
-    bannedBy: string,
+    bannedTerms: Array<string> | null,
+    bannedBy: string | null,
+    //
     team: number,
     emailHash: string,
     avatar: string,

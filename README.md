@@ -2,7 +2,7 @@
 
 work in progress
 
-![screenshot of the "/whois" command as of 22 feb 2023 (in german)](./static/ss.png)
+![screenshot of my english profile, through the bot, as of 23 feb 2023 (in german)](./static/eng_profile_interaction.png)
 
 ## stuff implemented:
 - SUML support out of the box for discord-supported locales
@@ -23,3 +23,8 @@ work in progress
 - the damn mute command cause its useful
 - OAuth with pronouns.page itself? (right now its based off of truthness lol)
 - funstuff or other functions?
+
+## more photos
+![account setup successful](./static/setup_cmd.png)
+![/whois command, showing profile buttons as well](./static/whois_cmd.png)
+![the words section of my profile, separated from the rest of the profile since word columns are usually large](./static/eng_words_interaction.png)

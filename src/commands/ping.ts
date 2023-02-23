@@ -1,6 +1,7 @@
 import { ChatInputCommandInteraction, EmbedBuilder, SlashCommandBuilder } from "discord.js";
 import localeHelper from "../localeHelper";
 import embedclr from "../utils/embedclr";
+import LanguageUtil from "../utils/languageUtil";
 
 const connIcons = {
     low: "./static/empty.png",
@@ -11,6 +12,7 @@ const connIcons = {
 }
 const transHelper = new localeHelper()
 const translations = transHelper.LoadForCommand("ping")
+const langUtil = new LanguageUtil(translations)
 
 export default {
     data: new SlashCommandBuilder()
@@ -18,6 +20,8 @@ export default {
         .setDescription("Shows the bot's response time")
         .setDescriptionLocalizations(translations["description"]),
     async execute(int: ChatInputCommandInteraction) {
+        langUtil.update(int.locale)
+
         let ping = int.client.ws.ping
         let icon = connIcons.high
         if (ping > 250) icon = connIcons.near_high
@@ -28,8 +32,8 @@ export default {
         let iconUrl = `attachment://${icon.split("/")[icon.split("/").length - 1]}`
         await int.reply({embeds: [
             new EmbedBuilder()
-                .setTitle(translations["responseTitle"][int.locale] || translations["responseTitle"]["en-US"])
-                .setDescription((translations["latency"][int.locale] || translations["latency"]["en-US"]).replace("%latency%", int.client.ws.ping).replace("\\n", "\n"))
+                .setTitle(langUtil.get("responseTitle"))
+                .setDescription(langUtil.get("latency").replace("%latency%", int.client.ws.ping.toString()).replace("\\n", "\n"))
                 .setColor(embedclr)
                 .setThumbnail(iconUrl)
         ], files: [icon]})

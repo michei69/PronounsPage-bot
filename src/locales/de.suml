@@ -3,6 +3,7 @@ error: 'Fehler'
 success: 'Erfolg'
 yes: 'Ja'
 no: 'Nein'
+andMore: 'und %count% mehr'
 languages:
     de: 'Deutsch'
     en: 'Englisch'
@@ -57,4 +58,15 @@ commands:
         banned: 'Verbot'
         team: 'Team?'
         profiles: 'Profile'
+    fetch:
+        noUser: 'Der Sprache ist in der Testphase oder der Benutzer existiert nicht.\nDetails konnten nicht gefunden werden!' #google translate, dont judge
+        noPage: 'Der Benutzer hat keine Karte'
+        noDesc: 'Keine Beschreibung'
+        footer: 'Konto ID: %id%; Sprache: %locale%'
+        names: 'Namen'
+        pronouns: 'Pronomen'
+        flags: 'Flaggen'
+        timezone: 'Zeitzone'
+        circle: 'Kreis'
+        words: 'Wörter'
         
