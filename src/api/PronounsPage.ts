@@ -1,4 +1,5 @@
 import axios from "axios"
+import getUrl from "../utils/getUrl"
 
 interface Pronoun {
     canonicalName: string,
@@ -123,6 +124,13 @@ interface Relationship {
     locale: string,
     relationship: string
 }
+interface CustomFlag {
+    value: string,
+    name: string,
+    description: string | null,
+    alt: string | null,
+    link: string | null
+}
 interface Profile {
     opinions: {
         [key: string]: Opinion
@@ -139,7 +147,7 @@ interface Profile {
         [key: string]: string
     },
     flags: Array<string>,
-    customFlags: Array<string>,
+    customFlags: Array<CustomFlag>,
     words: Array<WordColumn>,
     birthday: any | null, // no idea what kind birthday is - useless for bot anyway
     timezone: {
@@ -200,8 +208,7 @@ export default class PronounsPageApi {
     constructor(language?: string){
         this.language = language || "en"
         this.language = this.language.toLowerCase()
-        this.url = `https://${this.language}.pronouns.page/api`
-        if (this.language == "pl") this.url = "https://zaimki.pl/api"
+        this.url = `https://${getUrl(this.language)}/api`
     }
 
     async getPronouns(): Promise<PronounsData | null>{

@@ -1,45 +1,15 @@
-import { ChatInputCommandInteraction, EmbedBuilder, SlashCommandBuilder } from "discord.js";
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ChatInputCommandInteraction, EmbedBuilder, SlashCommandBuilder } from "discord.js";
 import PronounsPageApi from "../api/PronounsPage";
 import LazyDatabase from "../database";
 import localeHelper from "../localeHelper";
 import embedclr from "../utils/embedclr";
+import getLanguage from "../utils/getLanguage";
 
 const PPApi = new PronounsPageApi()
 const db = new LazyDatabase()
 
 const transHelper = new localeHelper()
 const translations = transHelper.LoadForCommand("whois")
-
-// prettify stuff
-async function getLanguage(lang: string, locale: string){
-    return translations["generic"][locale]["languages"][lang]
-
-    // switch (lang) {
-    //     case "de": return "German"
-    //     case "en-US": return "English"
-    //     case "eo": return "Esperanto"
-    //     case "es": return "Spanish"
-    //     case "fr": return "French"
-    //     case "gl": return "Galician"
-    //     case "it": return "Italian"
-    //     case "ja": return "Japanese"
-    //     case "ko": return "Korean"
-    //     case "lad": return "Ladino"
-    //     case "nl": return "Dutch"
-    //     case "no": return "Norwegian"
-    //     case "pl": return "Polish"
-    //     case "pt": return "Portuguese"
-    //     case "ro": return "Romanian"
-    //     case "ru": return "Russian"
-    //     case "sv": return "Swedish"
-    //     case "tok": return "Toki-Pona"
-    //     case "tr": return "Turkish"
-    //     case "ua": return "Ukrainian"
-    //     case "vi": return "Vietnamese"
-    //     case "yi": return "Yiddish"
-    //     case "zh": return "Mandarin"
-    // }
-}
 
 export default {
     data: new SlashCommandBuilder()
@@ -122,9 +92,23 @@ export default {
             name: translations["profiles"][int.locale] || translations["profiles"]["en-US"], value: profiles.join("\n"), inline: false
         }])
 
+        let actionRow = new ActionRowBuilder<ButtonBuilder>()
+        let count = 1
+        for (let profile in ppuser.profiles){
+            if (count > 5) break;
+            actionRow.addComponents(
+                new ButtonBuilder()
+                .setCustomId(`P_${ppuser.id}_${profile}`)
+                .setLabel(await getLanguage(profile, int.locale))
+                .setStyle(ButtonStyle.Primary)
+            )
+            count++;
+        }
+
         return await int.reply({
             embeds: [embed],
-            ephemeral: true
+            ephemeral: true,
+            components: [actionRow]
         })
     }
 }

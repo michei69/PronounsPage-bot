@@ -4,6 +4,8 @@ import { LoadCommands, SlashCmd } from "./commands";
 import LazyDatabase from "./database";
 import localeHelper from "./localeHelper";
 import dotenv from "dotenv"
+import fetchProfile from "./interactions/fetchProfile";
+import fetchWords from "./interactions/fetchWords";
 dotenv.config({
     path: __dirname + "/../.env"
 })
@@ -84,6 +86,7 @@ client.on("ready", async ()=>{
     console.log(`Ready as ${client.user.tag}`)
 })
 
+// SLASH COMMANDS
 client.on("interactionCreate", async int => {
     if (!int.isChatInputCommand()) return; // ignore button presses for this
     const cmd = cmds.get(int.commandName)
@@ -107,6 +110,15 @@ client.on("interactionCreate", async int => {
             })
         }
     }
+})
+
+// BUTTON EVENTS
+client.on("interactionCreate", async int => {
+    if (!int.isButton()) return; // ignore anything else
+    
+    let splitted = int.customId.split("_") // any custom id will have its arguments separated by _
+    if (splitted[0] === "P") {await fetchProfile(int); return}
+    if (splitted[0] === "W") {await fetchWords(int); return}
 })
 
 client.login(token)
