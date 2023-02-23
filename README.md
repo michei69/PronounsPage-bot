@@ -15,8 +15,7 @@ work in progress
 - fix temp bans
 - add more try-catches/verify more inputs (esp. for locales)
 - add/complete translations both in code and in `./src/locales`
-- REWRITE FETCH PROFILE AND FETCH WORDS CAUSE THOSE DAMN IF-ELSES ARE KILLING MY EYES
-- also fix both of them cause they're broken when not enough languages (prob due to too many if-elses at this point)
+- term/source/pronoun searching
 
 ## ideas/stuff to implement:
 - more moderation tools (log, etc.)
